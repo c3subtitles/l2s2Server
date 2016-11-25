@@ -1,0 +1,50 @@
+{
+  "name": "l2s2Server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:marudor/l2s2Server.git",
+  "license": "MIT",
+  "scripts": {
+    "watch": "babel src --out-dir lib --watch --copy-files --source-maps",
+    "build": "babel src --out-dir lib --copy-files --source-maps",
+    "dev": "BLUEBIRD_WARNINGS=0 BLUEBIRD_LONG_STACK_TRACES=1 nodemon --watch lib --exec 'node lib/index.js'"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.18.2",
+    "babel-plugin-module-require": "^1.4.4",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-syntax-trailing-function-commas": "^6.13.0",
+    "babel-plugin-transform-async-to-generator": "^6.16.0",
+    "babel-plugin-transform-class-properties": "^6.19.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
+    "babel-plugin-transform-export-extensions": "^6.8.0",
+    "babel-plugin-transform-flow-strip-types": "^6.18.0",
+    "babel-plugin-transform-object-rest-spread": "^6.19.0",
+    "babel-plugin-transform-remove-console": "^6.8.0",
+    "babel-plugin-transform-remove-debugger": "^6.8.0",
+    "nodemon": "^1.11.0"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.16.0",
+    "bcryptjs": "^2.3.0",
+    "bluebird": "^3.4.6",
+    "engine.io": "^1.8.0",
+    "immutable": "^3.8.1",
+    "koa": "next",
+    "koa-66": "^1.0.0",
+    "koa-json-body": "^5.0.0",
+    "lodash": "^4.17.2",
+    "nodemailer": "^2.6.4",
+    "nodemailer-sparkpost-transport": "^1.1.0",
+    "path": "^0.12.7",
+    "primus": "^6.0.5",
+    "primus-emit": "^1.0.0",
+    "primus-rooms": "^3.4.1",
+    "redis": "^2.6.3",
+    "redis-sessions": "^1.1.0",
+    "sails-postgresql": "^0.11.4",
+    "uuid-js": "^0.7.5",
+    "waterline": "^0.11.6"
+  }
+}

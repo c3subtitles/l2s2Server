@@ -1,0 +1,10 @@
+.idea/
+node_modules/
+lib/
+*.iml
+webpack-stats.json
+npm-debug.log
+.DS_Store
+www
+.env
+src/configuration.production.js

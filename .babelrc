@@ -1,0 +1,30 @@
+{
+  "sourceMaps": "both",
+  "plugins": [
+    "transform-export-extensions",
+    "transform-class-properties",
+    "transform-async-to-generator",
+    "transform-object-rest-spread",
+    "transform-es2015-modules-commonjs",
+    "transform-flow-strip-types",
+    "syntax-flow",
+    "syntax-trailing-function-commas",
+    ["module-require",
+      {
+        "baseDir": "src",
+        "ignore": []
+      }
+    ]
+  ],
+  "env": {
+    "production": {
+      "compact": true,
+      "sourceMaps": false,
+      "retainLines": false,
+      "plugins": [
+        "transform-remove-debugger",
+        "transform-remove-console"
+      ]
+    }
+  }
+}
