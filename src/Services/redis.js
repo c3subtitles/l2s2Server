@@ -1,11 +1,14 @@
+// @flow
 /* eslint camelcase: 0 */
-/* @flow */
 import RedisSessions from 'redis-sessions';
 import redis from 'redis';
 import { User } from '../models';
 
 const redisOptions = {
   enable_offline_queue: false,
+  path: undefined,
+  port: undefined,
+  host: undefined,
 };
 if (process.env.REDIS_PATH) {
   redisOptions.path = process.env.REDIS_PATH;
@@ -35,11 +38,11 @@ export async function getUserForSessionFromRedis(token: string): Promise<?Client
     token,
   });
   if (id) {
-    return await User.findOne({ id }).populate('role');
+    return User.findOne({ id }).populate('role');
   }
 }
 
-export async function deleteSessionForUser(user: ClientUser): Promise {
+export async function deleteSessionForUser(user: ClientUser): Promise<any> {
   await rs.killsoidAsync({
     app,
     id: user.id,

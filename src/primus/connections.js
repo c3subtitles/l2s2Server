@@ -1,8 +1,9 @@
-/* @flow */
+// @flow
 import { getUserForSessionId } from '../Services/users';
 import { addLine, lineStart, leaveRoom, leaveAllRooms } from '../Services/rooms';
 
-export function emitToRoomAuth(spark, roomId, ...params) {
+export function emitToRoomAuth(spark: Primus$Spark, roomId: string, ...params: any) {
+  // $FlowFixMe
   spark.room(roomId).transform(function(packet, done) {
     if (this.user && this.id !== spark.id) {
       this.emit(...packet.data[0]);
@@ -12,7 +13,7 @@ export function emitToRoomAuth(spark, roomId, ...params) {
   .write(params);
 }
 
-export function onConnection(spark) {
+export function onConnection(spark: Primus$Spark) {
   spark.on('end', () => {
     if (spark.user) {
       leaveAllRooms(spark.user.id, (roomId) => {
@@ -35,14 +36,15 @@ export function onConnection(spark) {
   spark.on('leave', roomId => {
     spark.leave(roomId);
     if (spark.user) {
-      leaveRoom(Number.parseInt(roomId), spark.user.id);
+      leaveRoom(Number.parseInt(roomId, 10), spark.user.id);
       emitToRoomAuth(spark, roomId, 'leave', roomId, spark.user.client());
     }
   });
 
   spark.on('lineStart', (roomId, text) => {
     if (spark.user) {
-      lineStart(text, spark.user.id, Number.parseInt(roomId));
+      // $FlowFixMe
+      lineStart(text, spark.user.id, Number.parseInt(roomId, 10));
       emitToRoomAuth(spark, roomId, 'lineStart', roomId, spark.user.id, text);
     }
   });
@@ -50,10 +52,12 @@ export function onConnection(spark) {
 
   spark.on('line', (roomId, text, color) => {
     if (spark.user) {
-      lineStart('', spark.user.id, Number.parseInt(roomId));
+      lineStart('', spark.user.id, Number.parseInt(roomId, 10));
       const timeout = new Date();
       timeout.setMinutes(timeout.getMinutes() + 5);
-      addLine(text, Number.parseInt(roomId), spark.user.id, color, timeout);
+      // $FlowFixMe
+      addLine(text, Number.parseInt(roomId, 10), spark.user.id, color, timeout);
+      // $FlowFixMe
       spark.room(roomId).transform(function(packet, done) {
         if (this.id !== spark.id) {
           this.emit(...packet.data[0]);

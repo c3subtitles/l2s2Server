@@ -1,3 +1,4 @@
+// @flow
 import { Map, List } from 'immutable';
 import { User, Line, Room } from '../models';
 
@@ -79,7 +80,7 @@ export function leaveAllRooms(userId: number, emitFn: ?Function) {
 }
 
 
-export function lineStart(text, userId, roomId: number) {
+export function lineStart(text: string, userId: number, roomId: number) {
   try {
     const { userIds } = rooms.get(roomId);
     if (userIds) {
@@ -104,12 +105,12 @@ async function addLineToDatabase(text, roomId, userId, color) {
       roomName: room.name,
     });
   } catch (e) {
-    console.error(`lineAddFailed ${e}`);
+    // console.error(`lineAddFailed ${e}`);
     e.stack();
   }
 }
 
-export function addLine(text, roomId: number, userId, color: string) {
+export function addLine(text: string, roomId: number, userId: number, color: string) {
   const room = rooms.get(roomId);
   if (room) {
     room.lines = room.lines || List();

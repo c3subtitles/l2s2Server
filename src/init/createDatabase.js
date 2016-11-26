@@ -1,5 +1,6 @@
+// @flow
 import 'babel-polyfill';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import '../models/modelsInit';
 
 
@@ -46,13 +47,14 @@ global.initPromise.then(() => {
     return roles;
   }
 
-  async function createAdmin(roles: Array<RoleType>) {
+  function createAdmin(roles: Array<RoleType>) {
     const adminRole = roles.find(x => x.name === 'admin');
     const User = global.models.User;
-    return await User.findOrCreate({ username: 'admin' }, {
+    return User.findOrCreate({ username: 'admin' }, {
       username: 'admin',
       password: 'admin',
       active: true,
+      // $FlowFixMe
       role: adminRole.id,
     });
   }
@@ -61,6 +63,6 @@ global.initPromise.then(() => {
     process.exit(0);
   });
 })
-.catch(e => {
-  console.error(e.stack);
+.catch(() => {
+  // console.error(e.stack);
 });

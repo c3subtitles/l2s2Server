@@ -1,5 +1,5 @@
+// @flow
 /* eslint no-sync: 0 */
-/* @flow */
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
@@ -10,9 +10,7 @@ global.waterline = new Waterline();
 
 fs
   .readdirSync(__dirname)
-  .filter((file) => {
-    return (file.indexOf('.') !== 0) && (file !== 'index.js') && (file !== 'modelsInit.js');
-  })
+  .filter((file) => (file.indexOf('.') !== 0) && (file !== 'index.js') && (file !== 'modelsInit.js'))
   .forEach((file) => {
     const model = require(path.join(__dirname, file)).default;
     global.waterline.loadCollection(model);
@@ -53,6 +51,6 @@ global.initPromise = new Promise(resolve => {
     resolve();
   });
 })
-.catch(e => {
-  console.error(e.stack);
+.catch(() => {
+  // console.error(e.stack);
 });
