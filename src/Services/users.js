@@ -1,6 +1,8 @@
 // @flow
 import { getUserForSessionFromRedis, createSession, deleteSession } from './redis';
-import { User, Role, Onetimetoken } from '../models';
+import UserModel from 'Model/UserModel';
+import RoleModel from 'Model/RoleModel';
+import OneTimeTokenModel from 'Model/OneTimeTokenModel';
 import bcrypt from 'bcrypt';
 import uuid from 'uuid';
 import nodemailer from 'nodemailer';
@@ -22,27 +24,29 @@ function createNodemailTransport() {
   }));
 }
 
-export async function resetPassword(user: ClientUser) {
-  const token = await Onetimetoken.findOrCreate({
+export async function resetPassword(user: UserModel) {
+  let token = await OneTimeTokenModel.where({
     user: user.id,
-  }, {
-    user: user.id,
-    token: uuid.v4(),
-  });
+  }).fetch();
+  if (!token) {
+    token = await new OneTimeTokenModel({
+      user: user.id,
+      token: uuid.v4(),
+    }).save();
+  }
   const transport = createNodemailTransport();
   transport.sendMail({
     substitution_data: {
       /* eslint-enable camelcase */
       user: {
-        name: user.username,
-        passwordResetUrl: `${process.env.BASE_URL || ''}profile?token=${token.token}`,
+        name: user.get('username'),
+        passwordResetUrl: `${process.env.BASE_URL || ''}profile?token=${token.get('token')}`,
       },
     },
     recipients: [{
       address: {
-        // $FlowFixMe
-        email: user.email,
-        name: user.username,
+        email: user.get('email'),
+        name: user.get('username'),
       },
     }],
   }, (err, info) => {
@@ -55,27 +59,16 @@ export async function resetPassword(user: ClientUser) {
   });
 }
 
-export function checkPassword(password: string, user: ClientUser): Promise<bool> {
-  return new Promise((resolve) => {
-    // $FlowFixMe
-    bcrypt.compare(password, user.password, (err, res) => {
-      if (res) {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
-    });
-  });
+export function checkPassword(password: string, user: UserModel): Promise<bool> {
+  return bcrypt.compare(password, user.get('password'));
 }
 
-export function getInactive(): Promise<User[]> {
-  return User.findAll({
-    where: {
-      active: false,
-    },
-  });
+export function getInactive(): Promise<UserModel.Collection> {
+  return UserModel.where({
+    active: false,
+  }).fetchAll();
 }
-export function activateUser(user: Object, u: Object): Promise<User> {
+export function activateUser(user: UserModel, u: Object): Promise<UserModel> {
   if (!u.role.canActivateUser) {
     return Promise.reject(new Error('Insufficent Permission'));
   }
@@ -84,18 +77,7 @@ export function activateUser(user: Object, u: Object): Promise<User> {
   });
 }
 
-export function getClientUserRepresentation(user: Object): ClientUser {
-  // $FlowFixMe
-  return {
-    active: user.active,
-    canBan: user.canBan,
-    id: user.id,
-    role: user.role,
-    username: user.username,
-  };
-}
-
-export async function getCurrentUserFromSession(ctx: Koa$Context): Promise<ClientUser> {
+export async function getCurrentUserFromSession(ctx: Koa$Context): Promise<UserModel> {
   const user = await getUserForSessionId(ctx.request.headers.sessionid);
   if (!user) {
     throw new Error({ message: 'Expired Session' });
@@ -103,35 +85,35 @@ export async function getCurrentUserFromSession(ctx: Koa$Context): Promise<Clien
   return user;
 }
 
-export async function getUserForSessionId(sessionId: ?string): Promise<?ClientUser> {
+export function getUserForSessionId(sessionId: ?string) {
   if (sessionId) {
     return getUserForSessionFromRedis(sessionId);
   }
+  return Promise.resolve();
 }
 
-export async function register(username: string, password: string, email: string): Object {
-  let user = await User.findOne({ username });
+export async function register(username: string, password: string, email: string): Promise<UserModel> {
+  let user = await UserModel.where({ username }).fetch();
   if (user) {
     throw new Error({ title: 'Duplicate User', message: 'Username already in use' });
   }
-  const userRole = await Role.findOne({ name: 'User' });
-  user = await User.create({
+  const userRole = await RoleModel.where({ name: 'User' }).fetch();
+  user = await new UserModel({
     username,
     password,
     email,
     role: userRole ? userRole.id : undefined,
-  });
+  }).save();
   return user;
 }
 
-export async function login(username: string, password: string): Object {
-  const user = await User.findOne({ username })
-  .populate('role');
+export async function login(username: string, password: string) {
+  const user = await UserModel.where({ username }).fetch();
   if (!user || !await checkPassword(password, user)) {
     throw new Error({ title: 'Wrong Credentials', message: 'Username or password wrong' });
   }
-  if (!user.active) {
-    throw new Error({ title: 'Inactive', message: `${user.username} is not active yet. Wait until you are activated.` });
+  if (!user.get('active')) {
+    throw new Error({ title: 'Inactive', message: `${user.get('username')} is not active yet. Wait until you are activated.` });
   }
   const sessionId = await createSession(user.id);
   return { user, sessionId };
@@ -141,8 +123,7 @@ export function logout(sessionId: string) {
   deleteSession(sessionId);
 }
 
-export async function getUsers(): Promise<Array<ClientUser>> {
-  const users: Array<ClientUser> = await User.find().populate('role');
-  // $FlowFixMe
-  return users.map(user => user.client());
+export async function getUsers(): Promise<Array<UserModel>> {
+  const users = await UserModel.fetchAll();
+  return Promise.map(users.toArray(), user => user.client()).all();
 }

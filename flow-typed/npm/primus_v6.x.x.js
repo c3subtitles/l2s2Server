@@ -37,7 +37,6 @@ type Primus$SocketOptions = {
 }
 
 declare class Primus$Spark {
-  user: any;
   address: string;
   headers: any[];
   id: string;

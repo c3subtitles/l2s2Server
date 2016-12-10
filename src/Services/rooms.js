@@ -1,16 +1,25 @@
 // @flow
 import { Map, List } from 'immutable';
-import { User, Line, Room } from '../models';
+import UserModel from 'Model/UserModel';
+import LineModel from 'Model/LineModel';
+import RoomModel from 'Model/RoomModel';
 
-let rooms = Map();
+let rooms: Map<any, any> = Map();
 
 export async function getUsersInRoom(roomId: number) {
   const { userIds, lines } = rooms.get(roomId);
   if (userIds) {
-    const users = await Promise.all(userIds.map(async u => ({
-      ...(await User.findOne({ id: u.id })).client(),
-      currentLine: u.currentLine,
-    })).toArray());
+    const users = await Promise.map(userIds, async u => {
+      const user = await UserModel.where({
+        id: u.id,
+      }).fetch();
+      if (user) {
+        return {
+          ...(await user.client()),
+          current: u.currentLine,
+        };
+      }
+    });
     const refDate = new Date();
     return {
       userInRoom: users,
@@ -96,14 +105,16 @@ export function lineStart(text: string, userId: number, roomId: number) {
 
 async function addLineToDatabase(text, roomId, userId, color) {
   try {
-    const room = await Room.findOne({ id: roomId });
-    await Line.create({
-      text,
-      color,
-      user: userId,
-      room: room.id,
-      roomName: room.name,
-    });
+    const room = await RoomModel.where({ id: roomId }).fetch();
+    if (room) {
+      await new LineModel({
+        text,
+        color,
+        user: userId,
+        room: room.id,
+        roomName: room.get('name'),
+      }).save();
+    }
   } catch (e) {
     // console.error(`lineAddFailed ${e}`);
     e.stack();

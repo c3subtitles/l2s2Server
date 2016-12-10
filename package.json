@@ -8,7 +8,7 @@
     "watch": "babel src --out-dir lib --watch --copy-files --source-maps",
     "build": "babel src --out-dir lib --copy-files --source-maps",
     "dev": "BLUEBIRD_WARNINGS=0 BLUEBIRD_LONG_STACK_TRACES=1 nodemon --watch lib --exec 'node lib/index.js'",
-    "database": "node server/lib/init/createDatabase.js"
+    "database": "node lib/init/createDatabase.js"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -32,23 +32,24 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.16.0",
-    "bcrypt": "^0.8.7",
+    "bcrypt": "^1.0.1",
     "bluebird": "^3.4.6",
+    "bookshelf": "^0.10.2",
     "engine.io": "^1.8.0",
     "immutable": "^3.8.1",
+    "knex": "^0.12.6",
     "koa": "^2.0.0-alpha.7",
     "koa-bodyparser": "^3.2.0",
     "koa-router": "^7.0.1",
     "lodash": "^4.17.2",
     "nodemailer": "^2.6.4",
     "nodemailer-sparkpost-transport": "^1.1.0",
+    "pg": "^6.1.0",
     "primus": "^6.0.5",
     "primus-emit": "^1.0.0",
     "primus-rooms": "^3.4.1",
     "redis": "^2.6.3",
     "redis-sessions": "^1.1.0",
-    "sails-postgresql": "^0.11.4",
-    "uuid": "^3.0.0",
-    "waterline": "^0.11.6"
+    "uuid": "^3.0.0"
   }
 }

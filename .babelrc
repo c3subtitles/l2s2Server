@@ -1,5 +1,4 @@
 {
-  "sourceMaps": "both",
   "plugins": [
     "transform-export-extensions",
     "transform-class-properties",

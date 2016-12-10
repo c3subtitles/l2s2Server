@@ -1,6 +1,7 @@
 // @flow
-import { login, getClientUserRepresentation, logout, checkPassword, register, getUsers, getCurrentUserFromSession, resetPassword } from '../Services/users';
-import { User, Onetimetoken } from '../models';
+import { login, logout, checkPassword, register, getUsers, resetPassword, getCurrentUserFromSession } from '../Services/users';
+import UserModel from 'Model/UserModel';
+import OneTimeTokenModel from 'Model/OneTimeTokenModel';
 import { createSession, deleteSessionForUser } from '../Services/redis';
 import Router from 'koa-router';
 
@@ -12,19 +13,22 @@ router.post('/api/login', async (ctx) => {
   const { user, sessionId } = await login(username, password);
   ctx.body = {
     sessionId,
-    user: getClientUserRepresentation(user),
+    user: await user.client(),
   };
 })
 .post('/api/userForSessionId', async (ctx) => {
   const user = await getCurrentUserFromSession(ctx);
-  ctx.body = getClientUserRepresentation(user);
+  ctx.body = await user.client();
 })
 .post('/api/userForToken', async ctx => {
-  const token = await Onetimetoken.findOne({
+  const token = await OneTimeTokenModel.where({
     token: ctx.request.body.token,
-  }).populate('user');
+  }).fetch();
   if (token) {
-    const user = token.user;
+    const user = await token.user().fetch();
+    if (!user) {
+      return;
+    }
     const sessionId = await createSession(user.id);
     ctx.body = {
       user,
@@ -50,7 +54,9 @@ router.post('/api/login', async (ctx) => {
     throw new Error({ message: 'Old Password is incorrect' });
   }
   const cryptedPw = await global.encrypt(newPassword);
-  await User.update({ id: user.id }, { password: cryptedPw });
+  await user.save({
+    password: cryptedPw,
+  });
   ctx.status = 200;
 })
 .post('/api/register', async (ctx) => {
@@ -74,11 +80,13 @@ router.post('/api/login', async (ctx) => {
   if (user.hasOwnProperty('role') && !ownUser.role.canChangeUserRole) {
     throw new Error({ message: 'insufficent permissions' });
   }
-  await User.update({ id: ctx.params.id }, user);
+  const dbUser = await UserModel.where({
+    id: Number.parseInt(ctx.params.id, 10),
+  }).save(user);
   if (!user.active) {
     deleteSessionForUser(user);
   }
-  ctx.body = await User.findOne({ id: ctx.params.id }).populate('role');
+  ctx.body = await dbUser.client();
   ctx.status = 200;
 })
 .delete('/api/users/:id', async (ctx) => {
@@ -86,14 +94,15 @@ router.post('/api/login', async (ctx) => {
   if (!ownUser.role.canDeleteUser) {
     throw new Error({ message: 'insufficent permissions' });
   }
-  const userToDelete = await User.findOne({ id: ctx.params.id });
-  await userToDelete.destroy();
+  await UserModel.where({
+    id: ctx.params.id,
+  }).destroy();
   ctx.status = 200;
 })
 .post('/api/users/resetPassword', async (ctx) => {
-  const user = await User.findOne({
+  const user = await UserModel.where({
     email: ctx.request.body.email,
-  });
+  }).fetch();
   ctx.status = 200;
   if (!user) {
     return;
@@ -102,7 +111,8 @@ router.post('/api/login', async (ctx) => {
 })
 .get('/api/stats', async (ctx) => {
   const ownUser = await getCurrentUserFromSession(ctx);
-  if (ownUser.role.id !== 1) {
+  const role = await ownUser.role().fetch();
+  if (!role || role.id !== 1) {
     throw new Error({ message: 'insufficent permissions' });
   }
   ctx.body = `${Object.keys(global.primus.connections).length} Clients`;

@@ -27,6 +27,7 @@ bluebird.promisifyAll(redis.Multi.prototype);
 
 global.Promise = bluebird;
 
+require('./databaseInit');
 
 global.koa = new koa();
 const server = http.createServer(global.koa.callback());
@@ -49,7 +50,9 @@ global.koa
   try {
     await next();
   } catch (e) {
-    // console.error(e.stack);
+    /* eslint-disable */
+    console.error(e.stack);
+    /* eslint-enable */
     ctx.body = e;
     ctx.status = 500;
   }

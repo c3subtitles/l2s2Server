@@ -2,7 +2,7 @@
 /* eslint camelcase: 0 */
 import RedisSessions from 'redis-sessions';
 import redis from 'redis';
-import { User } from '../models';
+import UserModel from 'Model/UserModel';
 
 const redisOptions = {
   enable_offline_queue: false,
@@ -32,17 +32,18 @@ export async function createSession(userId: number): Promise<string> {
   return result.token;
 }
 
-export async function getUserForSessionFromRedis(token: string): Promise<?ClientUser> {
+export async function getUserForSessionFromRedis(token: string) {
   const { id } = await rs.getAsync({
     app,
     token,
   });
   if (id) {
-    return User.findOne({ id }).populate('role');
+    return UserModel.where({ id }).fetch();
   }
+  return Promise.resolve();
 }
 
-export async function deleteSessionForUser(user: ClientUser): Promise<any> {
+export async function deleteSessionForUser(user: UserModel): Promise<any> {
   await rs.killsoidAsync({
     app,
     id: user.id,

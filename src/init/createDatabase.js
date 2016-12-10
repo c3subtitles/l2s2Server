@@ -1,6 +1,7 @@
 // @flow
 import 'babel-polyfill';
 import bcrypt from 'bcrypt';
+// $FlowFixMe
 import '../models/modelsInit';
 
 
@@ -47,7 +48,7 @@ global.initPromise.then(() => {
     return roles;
   }
 
-  function createAdmin(roles: Array<RoleType>) {
+  function createAdmin(roles: Array<Role>) {
     const adminRole = roles.find(x => x.name === 'admin');
     const User = global.models.User;
     return User.findOrCreate({ username: 'admin' }, {

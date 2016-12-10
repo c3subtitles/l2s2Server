@@ -2,63 +2,53 @@
 import _ from 'lodash';
 import { getCurrentUserFromSession } from '../Services/users';
 import { getUsersInRoom, joinRoom, getLinesForRoom } from '../Services/rooms';
-import { Room } from '../models';
+import RoomModel from 'Model/RoomModel';
 import Router from 'koa-router';
 
 const router = new Router();
 
-router.get('/api/rooms', async (ctx) => {
-  ctx.body = await Room.find();
+router.get('/api/rooms', async(ctx) => {
+  ctx.body = await RoomModel.fetchAll();
   ctx.status = 200;
-})
-.put('/api/rooms/:id', async (ctx) => {
+}).put('/api/rooms/:id', async(ctx) => {
   const user = await getCurrentUserFromSession(ctx);
-  const dbRoom: RoomType = await Room.findOne({ id: ctx.params.id });
+  const dbRoom = await RoomModel.where({ id: ctx.params.id }).fetch();
   if (!dbRoom) {
     throw new Error({ message: 'Invalid Room' });
   }
   const room = ctx.request.body;
-  if (
-    (dbRoom.name !== room.name && !user.role.canCreateRoom) ||
-    (dbRoom.locked !== room.locked && !user.role.canLock) ||
-    (dbRoom.speechLocked !== room.speechLocked && !user.role.canSpeechLock)
-  ) {
+  if ((dbRoom.get('name') !== room.name && !user.role.canCreateRoom) || (dbRoom.get('locked') !== room.locked && !user.role.canLock) || (dbRoom.get('speechLocked') !== room.speechLocked && !user.role.canSpeechLock)) {
     throw new Error({ message: 'insufficent Permission' });
   }
-  Object.assign(dbRoom, ctx.request.body);
-  // $FlowFixMe
-  await dbRoom.save();
+  await dbRoom.save(ctx.request.body);
   _.each(global.primus.connections, s => {
     s.emit('roomUpdate', dbRoom);
   });
   ctx.body = dbRoom;
   ctx.status = 200;
-})
-.post('/api/rooms', async (ctx) => {
+}).post('/api/rooms', async(ctx) => {
   const user = await getCurrentUserFromSession(ctx);
   if (!user.role.canCreateRoom) {
     throw new Error({ message: 'insufficent Permission' });
   }
   const { room } = ctx.request.body;
-  const dbRoom = await Room.create({ name: room.name });
+  const dbRoom = await new RoomModel({ name: room.name }).save();
   ctx.body = dbRoom;
   ctx.status = 200;
-})
-.delete('/api/rooms/:id', async (ctx) => {
+}).delete('/api/rooms/:id', async(ctx) => {
   const user = await getCurrentUserFromSession(ctx);
   if (!user.role.canDeleteRoom) {
     throw new Error({ message: 'insufficent Permission' });
   }
-  const room = await Room.findOne({ id: ctx.params.id });
+  const room = await RoomModel.where({ id: ctx.params.id }).fetch();
   if (!room) {
     throw new Error({ message: 'invalid Room id' });
   }
   await room.destroy();
   ctx.status = 200;
-})
-.get('/api/rooms/:id/join', async (ctx) => {
-  const user: ClientUser = await getCurrentUserFromSession(ctx);
-  const room: RoomType = await Room.findOne({ id: ctx.params.id });
+}).get('/api/rooms/:id/join', async(ctx) => {
+  const user = await getCurrentUserFromSession(ctx);
+  const room = await RoomModel.where({ id: ctx.params.id }).fetch();
   if (!room) {
     throw new Error({ message: 'invalid Room' });
   }
@@ -71,14 +61,12 @@ router.get('/api/rooms', async (ctx) => {
     room,
   };
   ctx.status = 200;
-})
-.get('/api/rooms/:id/joinRead', async (ctx) => {
+}).get('/api/rooms/:id/joinRead', async(ctx) => {
   ctx.body = {
-    room: await Room.findOne({ id: ctx.params.id }),
+    room: await RoomModel.where({ id: ctx.params.id }).fetch(),
     lines: getLinesForRoom(Number.parseInt(ctx.params.id, 10)),
   };
   ctx.status = 200;
-})
-;
+});
 
 koa.use(router.routes());
