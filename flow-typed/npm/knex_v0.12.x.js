@@ -12,7 +12,7 @@ declare type Knex$QueryBuilderFn = (qb: Knex$QueryBuilder) => Knex$QueryBuilder;
 declare class Knex$QueryBuilder mixins Promise {
   select(key?: string[]): this;
   select(...key: string[]): this;
-  timeout(ms: number, options?: { cancel: bool }): this;
+  // timeout(ms: number, options?: { cancel: bool }): this;
   column(key: string[]): this;
   column(...key: string[]): this;
   with(alias: string, w: string|Knex$QueryBuilderFn): this;
