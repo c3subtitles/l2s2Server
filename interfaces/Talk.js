@@ -19,8 +19,3 @@ declare class RawTalk extends BaseTalk {
   date: string,
   duration: string,
 }
-
-declare class Talk extends BaseTalk {
-  date: Object;
-  duration: Object;
-}

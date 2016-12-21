@@ -51,9 +51,12 @@ global.koa
     await next();
   } catch (e) {
     /* eslint-disable */
-    console.error(e.stack);
+    console.error(e);
     /* eslint-enable */
-    ctx.body = e;
+    ctx.body = {
+      message: e.message,
+      data: e.data,
+    };
     ctx.status = 500;
   }
 });

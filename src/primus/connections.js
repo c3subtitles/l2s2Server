@@ -29,21 +29,21 @@ export function onConnection(spark: Primus$Spark) {
     spark.user = await getUserForSessionId(sessionId);
   });
 
-  spark.on('join', roomId => {
+  spark.on('join', async roomId => {
     spark.join(roomId);
     if (spark.user) {
       // $FlowFixMe
-      emitToRoomAuth(spark, roomId, 'join', roomId, spark.user.client());
+      emitToRoomAuth(spark, roomId, 'join', roomId, await spark.user.client());
     }
   });
 
-  spark.on('leave', roomId => {
+  spark.on('leave', async roomId => {
     spark.leave(roomId);
     if (spark.user) {
       // $FlowFixMe
       leaveRoom(Number.parseInt(roomId, 10), spark.user.id);
       // $FlowFixMe
-      emitToRoomAuth(spark, roomId, 'leave', roomId, spark.user.client());
+      emitToRoomAuth(spark, roomId, 'leave', roomId, await spark.user.client());
     }
   });
 

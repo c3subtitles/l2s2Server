@@ -4,12 +4,29 @@ import UserModel from 'Model/UserModel';
 import LineModel from 'Model/LineModel';
 import RoomModel from 'Model/RoomModel';
 
-let rooms: Map<any, any> = Map();
+type RoomLine = {
+  color: string,
+  timeout: any,
+  line: string,
+  userId: number,
+};
+
+type RoomUser = {
+  id: number,
+  currentLine: string,
+};
+
+type ClientRoom = {
+  lines: List<RoomLine>,
+  userIds: Map<number, RoomUser>,
+};
+
+let rooms: Map<number, ClientRoom> = Map();
 
 export async function getUsersInRoom(roomId: number) {
   const { userIds, lines } = rooms.get(roomId);
   if (userIds) {
-    const users = await Promise.map(userIds, async u => {
+    const users = await Promise.map(userIds.toArray(), async u => {
       const user = await UserModel.where({
         id: u.id,
       }).fetch();

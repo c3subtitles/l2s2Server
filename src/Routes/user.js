@@ -37,7 +37,7 @@ router.post('/api/login', async (ctx) => {
     ctx.status = 200;
     await token.destroy();
   } else {
-    throw new Error({ message: 'Invalid Token, please request anotehr token.' });
+    throw new Error('Invalid Token, please request anotehr token.');
   }
 })
 .post('/api/logout', (ctx) => {
@@ -51,7 +51,7 @@ router.post('/api/login', async (ctx) => {
   const user = await getCurrentUserFromSession(ctx);
   const correctOld = await checkPassword(oldPassword, user);
   if (!correctOld) {
-    throw new Error({ message: 'Old Password is incorrect' });
+    throw new Error('Old Password is incorrect');
   }
   const cryptedPw = await global.encrypt(newPassword);
   await user.save({
@@ -62,7 +62,7 @@ router.post('/api/login', async (ctx) => {
 .post('/api/register', async (ctx) => {
   const { username, password, email } = ctx.request.body;
   if (!username || !password || !email) {
-    throw new Error({ message: 'Please fill out all fields.' });
+    throw new Error('Please fill out all fields.');
   }
   await register(username, password, email);
   ctx.status = 200;
@@ -75,10 +75,10 @@ router.post('/api/login', async (ctx) => {
   const ownUser = await getCurrentUserFromSession(ctx);
   const user = ctx.request.body;
   if (user.hasOwnProperty('active') && !ownUser.role.canActivateUser) {
-    throw new Error({ message: 'insufficent permissions' });
+    throw new Error('insufficent permissions');
   }
   if (user.hasOwnProperty('role') && !ownUser.role.canChangeUserRole) {
-    throw new Error({ message: 'insufficent permissions' });
+    throw new Error('insufficent permissions');
   }
   const dbUser = await UserModel.where({
     id: Number.parseInt(ctx.params.id, 10),
@@ -92,7 +92,7 @@ router.post('/api/login', async (ctx) => {
 .delete('/api/users/:id', async (ctx) => {
   const ownUser = await getCurrentUserFromSession(ctx);
   if (!ownUser.role.canDeleteUser) {
-    throw new Error({ message: 'insufficent permissions' });
+    throw new Error('insufficent permissions');
   }
   await UserModel.where({
     id: ctx.params.id,
@@ -113,7 +113,7 @@ router.post('/api/login', async (ctx) => {
   const ownUser = await getCurrentUserFromSession(ctx);
   const role = await ownUser.role().fetch();
   if (!role || role.id !== 1) {
-    throw new Error({ message: 'insufficent permissions' });
+    throw new Error('insufficent permissions');
   }
   ctx.body = `${Object.keys(global.primus.connections).length} Clients`;
   ctx.status = 200;

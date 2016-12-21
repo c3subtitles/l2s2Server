@@ -14,11 +14,12 @@ router.get('/api/rooms', async(ctx) => {
   const user = await getCurrentUserFromSession(ctx);
   const dbRoom = await RoomModel.where({ id: ctx.params.id }).fetch();
   if (!dbRoom) {
-    throw new Error({ message: 'Invalid Room' });
+    throw new Error('Invalid Room');
   }
   const room = ctx.request.body;
-  if ((dbRoom.get('name') !== room.name && !user.role.canCreateRoom) || (dbRoom.get('locked') !== room.locked && !user.role.canLock) || (dbRoom.get('speechLocked') !== room.speechLocked && !user.role.canSpeechLock)) {
-    throw new Error({ message: 'insufficent Permission' });
+  const role = await user.role();
+  if ((dbRoom.get('name') !== room.name && !role.get('canCreateRoom')) || (dbRoom.get('locked') !== room.locked && !role.get('canLock')) || (dbRoom.get('speechLocked') !== room.speechLocked && !role.get('canSpeechLock'))) {
+    throw new Error('insufficent Permission');
   }
   await dbRoom.save(ctx.request.body);
   _.each(global.primus.connections, s => {
@@ -28,8 +29,9 @@ router.get('/api/rooms', async(ctx) => {
   ctx.status = 200;
 }).post('/api/rooms', async(ctx) => {
   const user = await getCurrentUserFromSession(ctx);
-  if (!user.role.canCreateRoom) {
-    throw new Error({ message: 'insufficent Permission' });
+  const role = await user.role();
+  if (!role.get('canCreateRoom')) {
+    throw new Error('insufficent Permission');
   }
   const { room } = ctx.request.body;
   const dbRoom = await new RoomModel({ name: room.name }).save();
@@ -37,12 +39,13 @@ router.get('/api/rooms', async(ctx) => {
   ctx.status = 200;
 }).delete('/api/rooms/:id', async(ctx) => {
   const user = await getCurrentUserFromSession(ctx);
-  if (!user.role.canDeleteRoom) {
-    throw new Error({ message: 'insufficent Permission' });
+  const role = await user.role();
+  if (!role.get('canDeleteRoom')) {
+    throw new Error('insufficent Permission');
   }
   const room = await RoomModel.where({ id: ctx.params.id }).fetch();
   if (!room) {
-    throw new Error({ message: 'invalid Room id' });
+    throw new Error('invalid Room id');
   }
   await room.destroy();
   ctx.status = 200;
@@ -50,10 +53,11 @@ router.get('/api/rooms', async(ctx) => {
   const user = await getCurrentUserFromSession(ctx);
   const room = await RoomModel.where({ id: ctx.params.id }).fetch();
   if (!room) {
-    throw new Error({ message: 'invalid Room' });
+    throw new Error('invalid Room');
   }
-  if (room.locked && !user.role.canJoinLocked) {
-    throw new Error({ message: 'insufficent Permission' });
+  const role = await user.role();
+  if (room.locked && !role.get('canJoinLocked')) {
+    throw new Error('insufficent Permission');
   }
   joinRoom(room.id, user.id);
   ctx.body = {

@@ -80,7 +80,7 @@ export function activateUser(user: UserModel, u: Object): Promise<UserModel> {
 export async function getCurrentUserFromSession(ctx: Koa$Context): Promise<UserModel> {
   const user = await getUserForSessionId(ctx.request.headers.sessionid);
   if (!user) {
-    throw new Error({ message: 'Expired Session' });
+    throw new Error('Expired Session');
   }
   return user;
 }
@@ -95,12 +95,12 @@ export function getUserForSessionId(sessionId: ?string) {
 export async function register(username: string, password: string, email: string): Promise<UserModel> {
   let user = await UserModel.where({ username }).fetch();
   if (user) {
-    throw new Error({ title: 'Duplicate User', message: 'Username already in use' });
+    throw new Error('Username already in use');
   }
   const userRole = await RoleModel.where({ name: 'User' }).fetch();
   user = await new UserModel({
     username,
-    password,
+    password: await global.encrypt(password),
     email,
     role: userRole ? userRole.id : undefined,
   }).save();
@@ -110,10 +110,10 @@ export async function register(username: string, password: string, email: string
 export async function login(username: string, password: string) {
   const user = await UserModel.where({ username }).fetch();
   if (!user || !await checkPassword(password, user)) {
-    throw new Error({ title: 'Wrong Credentials', message: 'Username or password wrong' });
+    throw new Error('Username or password wrong');
   }
   if (!user.get('active')) {
-    throw new Error({ title: 'Inactive', message: `${user.get('username')} is not active yet. Wait until you are activated.` });
+    throw new Error(`${user.get('username')} is not active yet. Wait until you are activated.`);
   }
   const sessionId = await createSession(user.id);
   return { user, sessionId };
