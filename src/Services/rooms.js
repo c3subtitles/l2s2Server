@@ -37,10 +37,9 @@ export async function getUsersInRoom(roomId: number) {
         };
       }
     });
-    const refDate = new Date();
     return {
       userInRoom: users,
-      lines: lines.filter(l => l.timeout < refDate).takeLast(30).toArray(),
+      lines: lines.takeLast(30).toArray(),
     };
   }
   return {
