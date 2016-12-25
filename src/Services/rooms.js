@@ -3,11 +3,13 @@ import { Map, List } from 'immutable';
 import UserModel from 'Model/UserModel';
 import LineModel from 'Model/LineModel';
 import RoomModel from 'Model/RoomModel';
+import Crypto from 'crypto';
 
 type RoomLine = {
   color: string,
+  hash: string,
+  text: string,
   timeout: any,
-  line: string,
   userId: number,
 };
 
@@ -59,8 +61,9 @@ export function getLinesForRoom(roomId: number) {
   }
   const refDate = new Date();
   return room.lines.takeLast(5).filter(l => l.timeout > refDate).map(l => ({
-    text: l.line,
+    text: l.text,
     timeout: l.timeout,
+    hash: l.hash,
   })).toArray();
 }
 
@@ -77,8 +80,8 @@ export function joinRoom(roomId: number, userId: number) {
   }
   if (!room.userIds.has(userId)) {
     room.userIds = room.userIds.set(userId, {
-      id: userId,
       currentLine: '',
+      id: userId,
     });
   }
   rooms = rooms.set(roomId, room);
@@ -119,16 +122,17 @@ export function lineStart(text: string, userId: number, roomId: number) {
   }
 }
 
-async function addLineToDatabase(text, roomId, userId, color) {
+async function addLineToDatabase(text, roomId, userId, color, hash) {
   try {
     const room = await RoomModel.where({ id: roomId }).fetch();
     if (room) {
       await new LineModel({
-        text,
         color,
-        user: userId,
+        hash,
         room: room.id,
         roomName: room.get('name'),
+        text,
+        user: userId,
       }).save();
     }
   } catch (e) {
@@ -143,13 +147,15 @@ export function addLine(text: string, roomId: number, userId: number, color: str
     room.lines = room.lines || List();
     const timeout = new Date();
     timeout.setMinutes(timeout.getMinutes() + 7);
+    const hash = Crypto.createHash('sha256').update(`${color}${timeout.toISOString() }${text}${userId}`).digest('hex');
     room.lines = room.lines.push({
       color,
+      hash,
+      text,
       timeout,
-      line: text,
       userId,
     });
     rooms = rooms.set(roomId, room);
-    addLineToDatabase(text, roomId, userId, color);
+    addLineToDatabase(text, roomId, userId, color, hash);
   }
 }
