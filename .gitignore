@@ -9,3 +9,4 @@ www
 .env
 src/configuration.production.js
 *.dump
+environment

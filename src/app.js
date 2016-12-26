@@ -29,7 +29,9 @@ global.Promise = bluebird;
 
 require('./databaseInit');
 
-require('./databaseDebug');
+if (process.env.NODE_ENV !== 'production') {
+  require('./databaseDebug');
+}
 
 global.koa = new koa();
 const server = http.createServer(global.koa.callback());
