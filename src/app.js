@@ -30,7 +30,7 @@ global.Promise = bluebird;
 require('./databaseInit');
 
 if (process.env.NODE_ENV !== 'production') {
-  require('./databaseDebug');
+  // require('./databaseDebug');
 }
 
 global.koa = new koa();

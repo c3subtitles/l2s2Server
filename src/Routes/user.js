@@ -73,16 +73,21 @@ router.post('/api/login', async (ctx) => {
 })
 .put('/api/users/:id', async (ctx) => {
   const ownUser = await getCurrentUserFromSession(ctx);
+  const role = await ownUser.role();
   const user = ctx.request.body;
-  if (user.hasOwnProperty('active') && !ownUser.role.canActivateUser) {
+  if (user.hasOwnProperty('active') && !role.get('canActivateUser')) {
     throw new Error('insufficent permissions');
   }
-  if (user.hasOwnProperty('role') && !ownUser.role.canChangeUserRole) {
+  if (user.hasOwnProperty('role') && !role.get('canChangeUserRole')) {
     throw new Error('insufficent permissions');
   }
   const dbUser = await UserModel.where({
     id: Number.parseInt(ctx.params.id, 10),
-  }).save(user);
+  }).fetch();
+  if (!dbUser) {
+    throw new Error('unknown user');
+  }
+  await dbUser.save(user);
   if (!user.active) {
     deleteSessionForUser(user);
   }
@@ -91,7 +96,8 @@ router.post('/api/login', async (ctx) => {
 })
 .delete('/api/users/:id', async (ctx) => {
   const ownUser = await getCurrentUserFromSession(ctx);
-  if (!ownUser.role.canDeleteUser) {
+  const role = await ownUser.role();
+  if (!role.get('canDeleteUser')) {
     throw new Error('insufficent permissions');
   }
   await UserModel.where({
@@ -111,7 +117,7 @@ router.post('/api/login', async (ctx) => {
 })
 .get('/api/stats', async (ctx) => {
   const ownUser = await getCurrentUserFromSession(ctx);
-  const role = await ownUser.role().fetch();
+  const role = await ownUser.role();
   if (!role || role.id !== 1) {
     throw new Error('insufficent permissions');
   }
