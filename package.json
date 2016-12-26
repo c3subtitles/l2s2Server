@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "watch": "babel src --out-dir lib --watch --copy-files --source-maps",
-    "build": "babel src --out-dir lib --copy-files --source-maps",
+    "build": "babel src --out-dir lib --copy-files",
     "dev": "BLUEBIRD_WARNINGS=0 BLUEBIRD_LONG_STACK_TRACES=1 nodemon --watch lib --exec 'node lib/index.js'",
     "database": "node lib/init/createDatabase.js"
   },
