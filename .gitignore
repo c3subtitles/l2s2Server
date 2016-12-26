@@ -8,3 +8,4 @@ npm-debug.log
 www
 .env
 src/configuration.production.js
+*.dump
