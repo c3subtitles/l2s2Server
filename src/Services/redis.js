@@ -17,7 +17,7 @@ if (process.env.REDIS_PATH) {
   redisOptions.port = process.env.REDIS_PORT;
 }
 export const redisClient = redis.createClient(redisOptions);
-const app = 'L2S2-TEST';
+const app = 'L2S2';
 const rs = new RedisSessions({
   client: redisClient,
 });
@@ -27,7 +27,7 @@ export async function createSession(userId: number): Promise<string> {
     app,
     id: userId,
     ip: 'undefined',
-    ttl: 3600,
+    ttl: 14400,
   });
   return result.token;
 }
