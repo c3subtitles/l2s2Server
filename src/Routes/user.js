@@ -1,5 +1,5 @@
 // @flow
-import { login, logout, checkPassword, register, getUsers, resetPassword, getCurrentUserFromSession } from '../Services/users';
+import { login, logout, checkPassword, register, getUsers, resetPassword, getCurrentUserFromSession, statistics } from '../Services/users';
 import UserModel from 'Model/UserModel';
 import OneTimeTokenModel from 'Model/OneTimeTokenModel';
 import { createSession, deleteSessionForUser } from '../Services/redis';
@@ -121,7 +121,7 @@ router.post('/api/login', async (ctx) => {
   if (!role || role.id !== 1) {
     throw new Error('insufficent permissions');
   }
-  ctx.body = `${Object.keys(global.primus.connections).length} Clients`;
+  ctx.body = await statistics();
   ctx.status = 200;
 });
 

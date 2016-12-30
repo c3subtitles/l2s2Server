@@ -127,3 +127,20 @@ export async function getUsers(): Promise<Array<UserModel>> {
   const users = await UserModel.fetchAll();
   return Promise.map(users.toArray(), user => user.client()).all();
 }
+
+export async function statistics() {
+  const connections = Object.keys(global.primus.connections).length;
+  const room1 = await knex('line')
+  .select(knex.raw('count(text) as lines'), knex.raw('count(char_length(text)) as chars'))
+  .where('room', 1)
+  .first();
+  const room2 = await knex('line')
+  .select(knex.raw('count(text) as lines'), knex.raw('count(char_length(text)) as chars'))
+  .where('room', 2)
+  .first();
+  return {
+    connections,
+    roomOne: room1,
+    roomTwo: room2,
+  };
+}
