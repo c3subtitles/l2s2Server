@@ -8,7 +8,9 @@
     "watch": "babel src --out-dir lib --watch --copy-files --source-maps",
     "build": "babel src --out-dir lib --copy-files",
     "dev": "BLUEBIRD_WARNINGS=0 BLUEBIRD_LONG_STACK_TRACES=1 nodemon --watch lib --exec 'node lib/index.js'",
-    "database": "node lib/init/createDatabase.js"
+    "database": "node lib/init/createDatabase.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -36,11 +38,11 @@
     "bcrypt": "^1.0.1",
     "bluebird": "^3.4.7",
     "bookshelf": "^0.10.2",
-    "engine.io": "^1.8.2",
+    "engine.io": "^3.1.0",
     "immutable": "^3.8.1",
-    "knex": "^0.12.6",
+    "knex": "^0.14.3",
     "koa": "^2.0.0-alpha.7",
-    "koa-bodyparser": "^3.2.0",
+    "koa-bodyparser": "^4.1.0",
     "koa-router": "^7.0.1",
     "lodash": "^4.17.3",
     "moment": "^2.17.1",
@@ -52,6 +54,8 @@
     "primus-rooms": "^3.4.1",
     "redis": "^2.6.3",
     "redis-sessions": "^1.1.0",
-    "uuid": "^3.0.0"
-  }
+    "uuid": "^3.0.0",
+    "snyk": "^1.88.0"
+  },
+  "snyk": true
 }
