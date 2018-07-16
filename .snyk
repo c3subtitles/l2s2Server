@@ -1,0 +1,11 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.12.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - primus-rooms > debug:
+        patched: '2018-07-16T00:42:20.714Z'
+  'npm:ms:20170412':
+    - primus-rooms > debug > ms:
+        patched: '2018-07-16T00:42:20.714Z'
