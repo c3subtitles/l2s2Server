@@ -47,7 +47,7 @@
     "nodemailer": "^2.6.4",
     "nodemailer-sparkpost-transport": "^1.1.0",
     "pg": "^6.1.2",
-    "primus": "^6.0.7",
+    "primus": "^7.2.3",
     "primus-emit": "^1.0.0",
     "primus-rooms": "^3.4.1",
     "redis": "^2.6.3",
